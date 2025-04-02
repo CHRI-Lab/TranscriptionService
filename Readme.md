@@ -75,7 +75,7 @@ OPENAI_API_KEY= <KEY_HERE>
 
 replace any content in checkpoint.json to 
 ```
-{"processed_files": [], "last_file": "", "last_chunk": 0}
+{"processed_files": []}
 ```
 in the very first run
 
