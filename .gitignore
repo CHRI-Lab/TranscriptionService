@@ -1,0 +1,10 @@
+# Ignore the environment files
+.env
+
+# Ignore virtual environment directories (common names)
+venv/
+
+# Ignore Source and derived files
+temp/*
+Audio/*
+transcripts/*
