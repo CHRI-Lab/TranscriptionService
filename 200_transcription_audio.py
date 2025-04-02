@@ -48,20 +48,16 @@ def load_checkpoint():
     if os.path.exists(CHECKPOINT_FILE):
         with open(CHECKPOINT_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
-    return {"processed_files": [], "last_file": "", "last_chunk": 0}
+    return {"processed_files": []}
 
-def save_checkpoint(processed_files, last_file, last_chunk):
+def save_checkpoint(processed_files):
     """Saves the checkpoint, including the last processed file and chunk."""
     checkpoint_data = {
-        "processed_files": processed_files,
-        "last_file": last_file,
-        "last_chunk": last_chunk
+        "processed_files": processed_files
     }
     with open(CHECKPOINT_FILE, 'w', encoding='utf-8') as f:
         json.dump(checkpoint_data, f)
 
-
-#TODO need to fix the checkpoint zeroing out
 
 def process_chunks():
     """Processes all chunks from /temp and merges transcriptions, using checkpoints."""
@@ -69,52 +65,41 @@ def process_chunks():
     grouped_chunks = group_chunks()
     checkpoint = load_checkpoint()
     processed_files = checkpoint["processed_files"]
-    last_file = checkpoint["last_file"]
-    last_chunk = checkpoint["last_chunk"]
 
     for original_name, chunks in grouped_chunks.items():
-        # Skip already processed files
-        print(f"start processing {original_name, chunks}")
-        if f"{original_name}_{last_chunk}" in processed_files:
-            print(f"Skipping already processed file: {original_name}")
-            continue
+        print(f"All the audio files in {original_name} group is {chunks}")
 
+        # Skip already processed files
+        chunks = [chunk for chunk in chunks if chunk not in processed_files]
+        print(f"To be processed audio files in {original_name} group is {chunks}")
+    
         file_transcription_dir = os.path.join(TEMP_DIR, original_name, "transcriptions")
         if not os.path.exists(file_transcription_dir):
             os.makedirs(file_transcription_dir)
 
-        full_transcript = []
-
         # Continue from the last processed chunk for this file
         print(f"Transcribing: {original_name}")
         for i, chunk in enumerate(chunks):
-            if i < last_chunk:
-                continue  # Skip already processed chunks
-
-            print(f"  → Processing chunk {i + 1}: {chunk}")
+            print(f"  → Processing chunk : {chunk}")
             try:
                 transcript = transcribe_audio(chunk)
-                print(transcript)
-                chunk_transcript_path = os.path.join(file_transcription_dir, f"chunk_{i + 1}.txt")
+                chunk_transcript_path = os.path.join(file_transcription_dir, f"chunk_{i}.txt")
                 save_transcription(transcript, chunk_transcript_path)
-                full_transcript.append(transcript)
-                print(f"  → Saved transcription for chunk {i + 1}")
+                print(f"  → Saved transcription for chunk {i}")
 
                 # Save progress after processing each chunk
-                last_file = original_name
-                last_chunk = i + 1
-                processed_files.append(f"{original_name}_{last_chunk}")
-                save_checkpoint(processed_files, last_file, last_chunk)
+                processed_files.append(f"{chunk}")
+                save_checkpoint(processed_files)
 
             except Exception:
                 print(traceback.format_exc())
                 # Save progress and exit on error
-                save_checkpoint(processed_files, last_file, last_chunk)
+                save_checkpoint(processed_files)
                 print("Progress saved. Please restart the process to continue.")
                 return  # Exit after error
 
         # Once all chunks are processed, merge them into a full transcript
-        save_checkpoint(processed_files, '', 0)
+        save_checkpoint(processed_files)
         
 
 if __name__ == "__main__":
