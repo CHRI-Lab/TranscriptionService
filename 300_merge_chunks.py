@@ -15,6 +15,12 @@ def group_chunks():
             audio_groups[original_name].append(os.path.join(TEMP_DIR, filename))
     return audio_groups
 
+def seconds_to_hms(seconds):
+    """Converts seconds to hh:mm:ss format."""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours:02}:{minutes:02}:{secs:02}"
 
 def merge_full_transcript(original_name):
     """Merges all chunk text files into a single full transcript."""
@@ -38,8 +44,13 @@ def merge_full_transcript(original_name):
                     adjusted_start_time = start_time + cumulative_end_time
                     adjusted_end_time = end_time + cumulative_end_time
                     
+                    # Convert adjusted timestamps to hh:mm:ss format
+                    formatted_start_time = seconds_to_hms(adjusted_start_time)
+                    formatted_end_time = seconds_to_hms(adjusted_end_time)
+                    
                     # Update the line with adjusted timestamps
-                    full_transcript.append(f"[{adjusted_start_time:.2f} - {adjusted_end_time:.2f}] {line.split(']')[1]}")
+                    full_transcript.append(f"[{formatted_start_time} - {formatted_end_time}] {line.split(']')[1]}")
+            
             
             # Update the cumulative end time based on the last segment's end time
             cumulative_end_time = adjusted_end_time  # Update with the latest chunk's end time

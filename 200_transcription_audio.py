@@ -75,7 +75,7 @@ def process_chunks():
     for original_name, chunks in grouped_chunks.items():
         # Skip already processed files
         print(f"start processing {original_name, chunks}")
-        if original_name in processed_files:
+        if f"{original_name}_{last_chunk}" in processed_files:
             print(f"Skipping already processed file: {original_name}")
             continue
 
@@ -103,7 +103,7 @@ def process_chunks():
                 # Save progress after processing each chunk
                 last_file = original_name
                 last_chunk = i + 1
-                processed_files.append(original_name)
+                processed_files.append(f"{original_name}_{last_chunk}")
                 save_checkpoint(processed_files, last_file, last_chunk)
 
             except Exception:
