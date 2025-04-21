@@ -2,3 +2,4 @@ pydub
 openai
 pysrt
 dotenv
+python-docx
